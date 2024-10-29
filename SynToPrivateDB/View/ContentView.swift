@@ -9,11 +9,7 @@ import SwiftUI
 import CoreData
 
 struct ContentView: View {
-    @StateObject private var viewModel : ContentViewModel
-
-    init(viewContext: NSManagedObjectContext) {
-        _viewModel = StateObject(wrappedValue: ContentViewModel(viewContext: viewContext))
-    }
+    @StateObject private var viewModel = ContentViewModel()
     
     var body: some View {
         NavigationView {
@@ -25,15 +21,21 @@ struct ContentView: View {
                         Text(item.timestamp!, formatter: itemFormatter)
                     }
                 }
-                .onDelete(perform: viewModel.deleteItems)
+                .onDelete { offsets in
+                    viewModel.deleteEntity(Item.self, at: offsets)
+                }
             }
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     EditButton()
                 }
                 ToolbarItem() {
-                    Button(action: viewModel.addItem) {
-                        Label("Add Item", systemImage: "plus")
+                    Button {
+                        viewModel.addEntity(Item.self) { item in
+                            item.timestamp = Date()
+                        }
+                    } label: {
+                        Image(systemName: "plus")
                     }
                 }
             }
@@ -50,7 +52,5 @@ private let itemFormatter: DateFormatter = {
 }()
 
 #Preview {
-    let persistenceController = PersistenceController.shared
-    
-    ContentView(viewContext: persistenceController.container.viewContext)
+    ContentView()
 }

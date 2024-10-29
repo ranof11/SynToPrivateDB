@@ -9,11 +9,9 @@ import SwiftUI
 
 @main
 struct SynToPrivateDBApp: App {
-    let persistenceController = PersistenceController.shared
-
     var body: some Scene {
         WindowGroup {
-            ContentView(viewContext: persistenceController.container.viewContext)
+            ContentView()
         }
     }
 }
