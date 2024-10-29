@@ -9,63 +9,77 @@ import Foundation
 import CoreData
 
 class ContentViewModel: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
-    private let viewContext: NSManagedObjectContext
-    private var fetchedResultsController: NSFetchedResultsController<Item>
+    private var itemFetchedResultsController: NSFetchedResultsController<Item>
+    private var bookFetchedResultsController: NSFetchedResultsController<Book>
     
     @Published var items: [Item] = []
+    @Published var books: [Book] = []
     
-    init(viewContext: NSManagedObjectContext) {
-        self.viewContext = viewContext
+    override init() {
+        // Setup for Item
+        let itemRequest: NSFetchRequest<Item> = Item.fetchRequest()
+        itemRequest.sortDescriptors = [NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)]
         
-        let request: NSFetchRequest<Item> = Item.fetchRequest()
-        request.sortDescriptors = [NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)]
+        itemFetchedResultsController = NSFetchedResultsController(
+            fetchRequest: itemRequest,
+            managedObjectContext: CoreDataManager.shared.context,
+            sectionNameKeyPath: nil,
+            cacheName: nil
+        )
         
-        fetchedResultsController = NSFetchedResultsController(
-            fetchRequest: request,
-            managedObjectContext: viewContext,
+        // Setup for Book
+        let bookRequest: NSFetchRequest<Book> = Book.fetchRequest()
+        bookRequest.sortDescriptors = [NSSortDescriptor(keyPath: \Book.title, ascending: true)]
+        
+        bookFetchedResultsController = NSFetchedResultsController(
+            fetchRequest: bookRequest,
+            managedObjectContext: CoreDataManager.shared.context,
             sectionNameKeyPath: nil,
             cacheName: nil
         )
         
         super.init()
         
-        fetchedResultsController.delegate = self
+        itemFetchedResultsController.delegate = self
+        bookFetchedResultsController.delegate = self
         fetchItems()
+        fetchBooks()
     }
     
     func fetchItems() {
         do {
-            try fetchedResultsController.performFetch()
-            items = fetchedResultsController.fetchedObjects ?? []
+            try itemFetchedResultsController.performFetch()
+            items = itemFetchedResultsController.fetchedObjects ?? []
         } catch {
             print("Failed to fetch items: \(error.localizedDescription)")
         }
     }
     
-    func addItem() {
-        let newItem = Item(context: viewContext)
-        newItem.timestamp = Date()
-        
-        saveContext()
-    }
-    
-    func deleteItems(at offsets: IndexSet) {
-        offsets.map { items[$0] }.forEach(viewContext.delete)
-        
-        saveContext()
-    }
-    
-    private func saveContext() {
+    func fetchBooks() {
         do {
-            try viewContext.save()
+            try bookFetchedResultsController.performFetch()
+            books = bookFetchedResultsController.fetchedObjects ?? []
         } catch {
-            let nsError = error as NSError
-            print("Unresolved error \(nsError), \(nsError.userInfo)")
+            print("Failed to fetch books: \(error.localizedDescription)")
         }
+    }
+
+    func addEntity<T: NSManagedObject>(_ entity: T.Type, configure: (T) -> Void) {
+        CoreDataManager.shared.addEntity(entity) { entityInstance in
+            configure(entityInstance)
+        }
+    }
+    
+    func deleteEntity<T: NSManagedObject>(_ entity: T.Type, at offsets: IndexSet) {
+        CoreDataManager.shared.deleteEntity(entity, at: offsets)
     }
     
     // MARK: - NSFetchedResultsControllerDelegate
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        items = fetchedResultsController.fetchedObjects ?? []
+        if controller === itemFetchedResultsController {
+            fetchItems()
+        } else if controller == bookFetchedResultsController {
+            fetchBooks()
+        }
     }
 }
