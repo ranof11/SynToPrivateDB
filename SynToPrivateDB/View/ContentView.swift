@@ -10,36 +10,73 @@ import CoreData
 
 struct ContentView: View {
     @StateObject private var viewModel = ContentViewModel()
+    @State private var showingAddBook = false
     
     var body: some View {
+        // MARK: - To show timestap of Item
+//        NavigationView {
+//            List {
+//                ForEach(viewModel.items) { item in
+//                    NavigationLink {
+//                        Text("Item at \(item.timestamp!, formatter: itemFormatter)")
+//                    } label: {
+//                        Text(item.timestamp!, formatter: itemFormatter)
+//                    }
+//                }
+//                .onDelete { offsets in
+//                    viewModel.deleteEntity(Item.self, at: offsets)
+//                }
+//            }
+//            .toolbar {
+//                ToolbarItem(placement: .navigationBarTrailing) {
+//                    EditButton()
+//                }
+//                ToolbarItem() {
+//                    Button {
+//                        viewModel.addEntity(Item.self) { item in
+//                            item.timestamp = Date()
+//                        }
+//                    } label: {
+//                        Image(systemName: "plus")
+//                    }
+//                }
+//            }
+//            Text("Select an item")
+//        }
+        
+        // Mark - To show Book
         NavigationView {
             List {
-                ForEach(viewModel.items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp!, formatter: itemFormatter)")
-                    } label: {
-                        Text(item.timestamp!, formatter: itemFormatter)
+                ForEach(viewModel.books) { book in
+                    VStack(alignment: .leading) {
+                        Text(book.title ?? "untitled")
+                            .font(.headline)
+                        Text(book.author ?? "unknown")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
                     }
                 }
                 .onDelete { offsets in
-                    viewModel.deleteEntity(Item.self, at: offsets)
+                    viewModel.deleteEntity(Book.self, at: offsets)
                 }
             }
+            .navigationTitle("Books")
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-                ToolbarItem() {
+                ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        viewModel.addEntity(Item.self) { item in
-                            item.timestamp = Date()
-                        }
+                        showingAddBook.toggle()
                     } label: {
                         Image(systemName: "plus")
                     }
                 }
+                
+                ToolbarItem(placement: .topBarLeading) {
+                    EditButton()
+                }
             }
-            Text("Select an item")
+            .sheet(isPresented: $showingAddBook) {
+                AddBookView(viewModel: viewModel)
+            }
         }
     }
 }
