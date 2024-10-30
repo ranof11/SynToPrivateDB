@@ -11,9 +11,19 @@ struct AddBookView: View {
     @Environment(\.presentationMode) var presentationMode
     @ObservedObject var viewModel: ContentViewModel
     
+    var existingBook: Book? // Optional parameter for editing an existing book
+
+    // Use @State to control input fields
     @State private var title: String = ""
     @State private var author: String = ""
-    
+
+    init(viewModel: ContentViewModel, book: Book? = nil) {
+        self.viewModel = viewModel
+        self.existingBook = book
+        _title = State(initialValue: book?.title ?? "")
+        _author = State(initialValue: book?.author ?? "")
+    }
+
     var body: some View {
         NavigationView {
             Form {
@@ -25,12 +35,11 @@ struct AddBookView: View {
                 
                 Section {
                     TextField("Enter author", text: $author)
-                        .frame(height: 200)
                 } header: {
                     Text("Author")
                 }
             }
-            .navigationTitle("New Book")
+            .navigationTitle(existingBook == nil ? "New Book" : "Edit Book")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -40,13 +49,29 @@ struct AddBookView: View {
                 
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
-                        viewModel.addEntity(Book.self) { book in
-                            book.title = title
-                            book.author = author
+                        if let bookToUpdate = existingBook {
+                            // Update existing book
+                            viewModel.updateEntity(Book.self, withIdentifier: bookToUpdate.objectID) { book in
+                                book.title = title
+                                book.author = author
+                            }
+                        } else {
+                            // Add new book
+                            viewModel.addEntity(Book.self) { book in
+                                book.title = title
+                                book.author = author
+                            }
                         }
                         presentationMode.wrappedValue.dismiss()
                     }
                     .disabled(title.isEmpty)
+                }
+            }
+            .onAppear {
+                // Refresh the text fields with the latest data
+                if let book = existingBook {
+                    title = book.title ?? ""
+                    author = book.author ?? ""
                 }
             }
         }
