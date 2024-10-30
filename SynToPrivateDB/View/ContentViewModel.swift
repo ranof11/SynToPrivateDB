@@ -8,78 +8,43 @@
 import Foundation
 import CoreData
 
-class ContentViewModel: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
-    private var itemFetchedResultsController: NSFetchedResultsController<Item>
-    private var bookFetchedResultsController: NSFetchedResultsController<Book>
-    
+class ContentViewModel: NSObject, ObservableObject, CoreDataManagerDelegate {
     @Published var items: [Item] = []
     @Published var books: [Book] = []
     
     override init() {
-        // Setup for Item
-        let itemRequest: NSFetchRequest<Item> = Item.fetchRequest()
-        itemRequest.sortDescriptors = [NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)]
-        
-        itemFetchedResultsController = NSFetchedResultsController(
-            fetchRequest: itemRequest,
-            managedObjectContext: CoreDataManager.shared.context,
-            sectionNameKeyPath: nil,
-            cacheName: nil
-        )
-        
-        // Setup for Book
-        let bookRequest: NSFetchRequest<Book> = Book.fetchRequest()
-        bookRequest.sortDescriptors = [NSSortDescriptor(keyPath: \Book.title, ascending: true)]
-        
-        bookFetchedResultsController = NSFetchedResultsController(
-            fetchRequest: bookRequest,
-            managedObjectContext: CoreDataManager.shared.context,
-            sectionNameKeyPath: nil,
-            cacheName: nil
-        )
-        
         super.init()
-        
-        itemFetchedResultsController.delegate = self
-        bookFetchedResultsController.delegate = self
-        fetchItems()
-        fetchBooks()
+        CoreDataManager.shared.delegate = self
+        loadInitialData()
     }
     
-    func fetchItems() {
-        do {
-            try itemFetchedResultsController.performFetch()
-            items = itemFetchedResultsController.fetchedObjects ?? []
-        } catch {
-            print("Failed to fetch items: \(error.localizedDescription)")
+    private func loadInitialData() {
+        items = CoreDataManager.shared.fetchEntity(Item.self)
+        books = CoreDataManager.shared.fetchEntity(Book.self)
+    }
+    
+    // CoreDataManagerDelegate methods
+    func didUpdateItems(_ items: [Item]) {
+        DispatchQueue.main.async {
+            self.items = items
         }
     }
     
-    func fetchBooks() {
-        do {
-            try bookFetchedResultsController.performFetch()
-            books = bookFetchedResultsController.fetchedObjects ?? []
-        } catch {
-            print("Failed to fetch books: \(error.localizedDescription)")
+    func didUpdateBooks(_ books: [Book]) {
+        DispatchQueue.main.async {
+            self.books = books
         }
     }
-
+    
     func addEntity<T: NSManagedObject>(_ entity: T.Type, configure: (T) -> Void) {
-        CoreDataManager.shared.addEntity(entity) { entityInstance in
-            configure(entityInstance)
-        }
+        CoreDataManager.shared.addEntity(entity, configure: configure)
     }
     
     func deleteEntity<T: NSManagedObject>(_ entity: T.Type, at offsets: IndexSet) {
         CoreDataManager.shared.deleteEntity(entity, at: offsets)
     }
     
-    // MARK: - NSFetchedResultsControllerDelegate
-    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        if controller === itemFetchedResultsController {
-            fetchItems()
-        } else if controller == bookFetchedResultsController {
-            fetchBooks()
-        }
+    func updateEntity<T: NSManagedObject>(_ entity: T.Type, withIdentifier identifier: NSManagedObjectID, configure: (T) -> Void) {
+        CoreDataManager.shared.updateEntity(entity, withIdentifier: identifier, configure: configure)
     }
 }
