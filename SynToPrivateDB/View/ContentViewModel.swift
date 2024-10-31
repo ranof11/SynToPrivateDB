@@ -12,39 +12,40 @@ class ContentViewModel: NSObject, ObservableObject, CoreDataManagerDelegate {
     @Published var items: [Item] = []
     @Published var books: [Book] = []
     
-    override init() {
+    private var dataManager: DataManager // Use the protocol type
+    
+    init(dataManager: DataManager = CoreDataManager.shared) { // Inject DataManager dependency
+        self.dataManager = dataManager
         super.init()
-        CoreDataManager.shared.delegate = self
+    
+        dataManager.setDelegate(self)
         loadInitialData()
     }
     
     private func loadInitialData() {
-        items = CoreDataManager.shared.fetchEntity(Item.self)
-        books = CoreDataManager.shared.fetchEntity(Book.self)
+        items = dataManager.fetchEntity(Item.self)
+        books = dataManager.fetchEntity(Book.self)
     }
     
     // CoreDataManagerDelegate methods
-    func didUpdateItems(_ items: [Item]) {
-        DispatchQueue.main.async {
-            self.items = items
+    func didUpdateEntity<T>(_ entity: T.Type, updatedObjects: [T]) where T : NSManagedObject {
+        if entity == Item.self {
+            items = updatedObjects as? [Item] ?? []
+        } else if entity == Book.self {
+            books = updatedObjects as? [Book] ?? []
         }
     }
     
-    func didUpdateBooks(_ books: [Book]) {
-        DispatchQueue.main.async {
-            self.books = books
-        }
-    }
-    
+    // CRUD operations through dataManager
     func addEntity<T: NSManagedObject>(_ entity: T.Type, configure: (T) -> Void) {
-        CoreDataManager.shared.addEntity(entity, configure: configure)
+        dataManager.addEntity(entity, configure: configure)
     }
     
     func deleteEntity<T: NSManagedObject>(_ entity: T.Type, at offsets: IndexSet) {
-        CoreDataManager.shared.deleteEntity(entity, at: offsets)
+        dataManager.deleteEntity(entity, at: offsets)
     }
     
     func updateEntity<T: NSManagedObject>(_ entity: T.Type, withIdentifier identifier: NSManagedObjectID, configure: (T) -> Void) {
-        CoreDataManager.shared.updateEntity(entity, withIdentifier: identifier, configure: configure)
+        dataManager.updateEntity(entity, withIdentifier: identifier, configure: configure)
     }
 }

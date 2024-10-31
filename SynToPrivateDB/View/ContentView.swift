@@ -47,44 +47,44 @@ struct ContentView: View {
         
         // Mark - To show Book
         NavigationView {
-                    List {
-                        ForEach(viewModel.books) { book in
-                            VStack(alignment: .leading) {
-                                Text(book.title ?? "untitled")
-                                    .font(.headline)
-                                Text(book.author ?? "unknown")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                            }
-                            .onTapGesture {
-                                selectedBook = book
-                                showingAddBook = true
-                            }
-                        }
-                        .onDelete { offsets in
-                            viewModel.deleteEntity(Book.self, at: offsets)
-                        }
+            List {
+                ForEach(viewModel.books) { book in
+                    VStack(alignment: .leading) {
+                        Text(book.title ?? "untitled")
+                            .font(.headline)
+                        Text(book.author ?? "unknown")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
                     }
-                    .navigationTitle("Books")
-                    .toolbar {
-                        ToolbarItem(placement: .topBarTrailing) {
-                            Button {
-                                selectedBook = nil // Clear selected book for adding a new book
-                                showingAddBook.toggle()
-                            } label: {
-                                Image(systemName: "plus")
-                            }
-                        }
-                        
-                        ToolbarItem(placement: .topBarLeading) {
-                            EditButton()
-                        }
+                    .onTapGesture {
+                        selectedBook = book
+                        showingAddBook = true
                     }
-                    .sheet(isPresented: $showingAddBook) {
-                        AddBookView(viewModel: viewModel, book: selectedBook) // Pass selectedBook if editing
-                    }
-                    .id(selectedBook?.objectID)
                 }
+                .onDelete { offsets in
+                    viewModel.deleteEntity(Book.self, at: offsets)
+                }
+            }
+            .navigationTitle("Books")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        selectedBook = nil // Clear selected book for adding a new book
+                        showingAddBook.toggle()
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                }
+                
+                ToolbarItem(placement: .topBarLeading) {
+                    EditButton()
+                }
+            }
+            .sheet(isPresented: $showingAddBook) {
+                AddBookView(viewModel: viewModel, book: selectedBook) // Pass selectedBook if editing
+            }
+            .id(selectedBook?.objectID)
+        }
     }
 }
 

@@ -12,8 +12,7 @@ struct AddBookView: View {
     @ObservedObject var viewModel: ContentViewModel
     
     var existingBook: Book? // Optional parameter for editing an existing book
-
-    // Use @State to control input fields
+    
     @State private var title: String = ""
     @State private var author: String = ""
 
