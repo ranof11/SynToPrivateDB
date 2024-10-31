@@ -10,24 +10,35 @@ import CoreData
 
 // MARK: - CoreDataManagerDelegate Protocol
 protocol CoreDataManagerDelegate: AnyObject {
-    func didUpdateItems(_ items: [Item])
-    func didUpdateBooks(_ books: [Book])
+    func didUpdateEntity<T: NSManagedObject>(_ entity: T.Type, updatedObjects: [T])
+}
+
+// MARK: - Dependecy Injection for Singleton Replacement
+protocol DataManager {
+    func addEntity<T: NSManagedObject>(_ entity: T.Type, configure: (T) -> Void)
+    func deleteEntity<T: NSManagedObject>(_ entity: T.Type, at offsets: IndexSet)
+    func updateEntity<T: NSManagedObject>(_ entity: T.Type, withIdentifier identifier: NSManagedObjectID, configure: (T) -> Void)
+    func fetchEntity<T: NSManagedObject>(_ entity: T.Type) -> [T]
+    func setDelegate(_ delegate: CoreDataManagerDelegate)
 }
 
 // MARK: - CoreDataManager Class
-class CoreDataManager: NSObject, NSFetchedResultsControllerDelegate {
-    
-    // MARK: - Singleton
+class CoreDataManager: NSObject, NSFetchedResultsControllerDelegate, DataManager {
     static let shared = CoreDataManager()
     
     // MARK: - Core Data Stack
     private let persistentContainer: NSPersistentCloudKitContainer
+    // monitors changes in the data and notifies its delegate
     private var fetchedResultsControllers: [String: NSFetchedResultsController<NSFetchRequestResult>] = [:]
     
     weak var delegate: CoreDataManagerDelegate?
     
     var context: NSManagedObjectContext {
         return persistentContainer.viewContext
+    }
+    
+    func setDelegate(_ delegate: any CoreDataManagerDelegate) {
+        self.delegate = delegate
     }
     
     // MARK: - Initialization
@@ -61,24 +72,24 @@ class CoreDataManager: NSObject, NSFetchedResultsControllerDelegate {
             cacheName: nil
         )
         
-        fetchedResultsController.delegate = self
-        fetchedResultsControllers[String(describing: entity)] = fetchedResultsController
+        fetchedResultsController.delegate = self     // Set the CoreDataManager as the delegate
+        fetchedResultsControllers[String(describing: entity)] = fetchedResultsController  // Store the controller in the dictionary
         
         do {
-            try fetchedResultsController.performFetch()
+            try fetchedResultsController.performFetch() // Perform initial fetch to populate results
         } catch {
             print("Failed to fetch \(entity): \(error.localizedDescription)")
         }
     }
-
+    
     // MARK: - CRUD Operations
-    func addEntity<T: NSManagedObject>(_ entity: T.Type, configure: (T) -> Void) {
+    func addEntity<T>(_ entity: T.Type, configure: (T) -> Void) where T : NSManagedObject {
         guard let newEntity = NSEntityDescription.insertNewObject(forEntityName: String(describing: entity), into: context) as? T else { return }
         configure(newEntity)
         saveContext()
     }
     
-    func deleteEntity<T: NSManagedObject>(_ entity: T.Type, at offsets: IndexSet) {
+    func deleteEntity<T>(_ entity: T.Type, at offsets: IndexSet) where T : NSManagedObject {
         guard let fetchedResultsController = fetchedResultsControllers[String(describing: entity)],
               let itemsToDelete = fetchedResultsController.fetchedObjects as? [T] else {
             print("No fetched results controller found for entity: \(entity)")
@@ -89,7 +100,7 @@ class CoreDataManager: NSObject, NSFetchedResultsControllerDelegate {
         saveContext()
     }
     
-    func updateEntity<T: NSManagedObject>(_ entity: T.Type, withIdentifier identifier: NSManagedObjectID, configure: (T) -> Void) {
+    func updateEntity<T>(_ entity: T.Type, withIdentifier identifier: NSManagedObjectID, configure: (T) -> Void) where T : NSManagedObject {
         do {
             if let object = try context.existingObject(with: identifier) as? T {
                 configure(object)
@@ -100,7 +111,7 @@ class CoreDataManager: NSObject, NSFetchedResultsControllerDelegate {
         }
     }
     
-    func fetchEntity<T: NSManagedObject>(_ entity: T.Type) -> [T] {
+    func fetchEntity<T>(_ entity: T.Type) -> [T] where T : NSManagedObject {
         let request = T.fetchRequest()
         do {
             return try context.fetch(request) as? [T] ?? []
@@ -125,10 +136,9 @@ class CoreDataManager: NSObject, NSFetchedResultsControllerDelegate {
         guard let entityName = controller.fetchRequest.entityName,
               let objects = controller.fetchedObjects else { return }
         
-        if entityName == String(describing: Item.self) {
-            delegate?.didUpdateItems(objects as? [Item] ?? [])
-        } else if entityName == String(describing: Book.self) {
-            delegate?.didUpdateBooks(objects as? [Book] ?? [])
+        // Notify the delegate of data changes based on entity type
+        if let entityClass = NSClassFromString(entityName) as? NSManagedObject.Type {
+            delegate?.didUpdateEntity(entityClass, updatedObjects: objects as? [NSManagedObject] ?? [])
         }
     }
 }
