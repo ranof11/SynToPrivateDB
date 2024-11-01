@@ -24,6 +24,7 @@ protocol DataManager {
 
 // MARK: - CoreDataManager Class
 class CoreDataManager: NSObject, NSFetchedResultsControllerDelegate, DataManager {
+    // MARK: - Singleton
     static let shared = CoreDataManager()
     
     // MARK: - Core Data Stack

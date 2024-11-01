@@ -5,50 +5,18 @@
 //  Created by Rajesh Triadi Noftarizal on 27/10/24.
 //
 
+// MARK: - ContentView
 import SwiftUI
-import CoreData
 
 struct ContentView: View {
-    @StateObject private var viewModel = ContentViewModel()
-    @State private var showingAddBook = false
+    @StateObject private var contentViewModel = ContentViewModel()
+    @State private var isBookFormPresented = false
     @State private var selectedBook: Book? = nil
     
     var body: some View {
-        // MARK: - To show timestap of Item
-        //        NavigationView {
-        //            List {
-        //                ForEach(viewModel.items) { item in
-        //                    NavigationLink {
-        //                        Text("Item at \(item.timestamp!, formatter: itemFormatter)")
-        //                    } label: {
-        //                        Text(item.timestamp!, formatter: itemFormatter)
-        //                    }
-        //                }
-        //                .onDelete { offsets in
-        //                    viewModel.deleteEntity(Item.self, at: offsets)
-        //                }
-        //            }
-        //            .toolbar {
-        //                ToolbarItem(placement: .navigationBarTrailing) {
-        //                    EditButton()
-        //                }
-        //                ToolbarItem() {
-        //                    Button {
-        //                        viewModel.addEntity(Item.self) { item in
-        //                            item.timestamp = Date()
-        //                        }
-        //                    } label: {
-        //                        Image(systemName: "plus")
-        //                    }
-        //                }
-        //            }
-        //            Text("Select an item")
-        //        }
-        
-        // Mark - To show Book
         NavigationView {
             List {
-                ForEach(viewModel.books) { book in
+                ForEach(contentViewModel.books) { book in
                     VStack(alignment: .leading) {
                         Text(book.title ?? "untitled")
                             .font(.headline)
@@ -58,11 +26,11 @@ struct ContentView: View {
                     }
                     .onTapGesture {
                         selectedBook = book
-                        showingAddBook = true
+                        isBookFormPresented.toggle()
                     }
                 }
                 .onDelete { offsets in
-                    viewModel.deleteEntity(Book.self, at: offsets)
+                    contentViewModel.deleteEntity(Book.self, at: offsets)
                 }
             }
             .navigationTitle("Books")
@@ -70,7 +38,7 @@ struct ContentView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         selectedBook = nil // Clear selected book for adding a new book
-                        showingAddBook.toggle()
+                        isBookFormPresented.toggle()
                     } label: {
                         Image(systemName: "plus")
                     }
@@ -80,14 +48,15 @@ struct ContentView: View {
                     EditButton()
                 }
             }
-            .sheet(isPresented: $showingAddBook) {
-                AddBookView(viewModel: viewModel, book: selectedBook) // Pass selectedBook if editing
+            .sheet(isPresented: $isBookFormPresented) {
+                BookFormView(contentViewModel: contentViewModel, bookToEdit: selectedBook)
             }
             .id(selectedBook?.objectID)
         }
     }
 }
 
+// MARK: - DateFormatter Utility
 private let itemFormatter: DateFormatter = {
     let formatter = DateFormatter()
     formatter.dateStyle = .short

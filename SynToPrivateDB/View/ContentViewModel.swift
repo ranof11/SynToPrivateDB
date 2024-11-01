@@ -48,4 +48,19 @@ class ContentViewModel: NSObject, ObservableObject, CoreDataManagerDelegate {
     func updateEntity<T: NSManagedObject>(_ entity: T.Type, withIdentifier identifier: NSManagedObjectID, configure: (T) -> Void) {
         dataManager.updateEntity(entity, withIdentifier: identifier, configure: configure)
     }
+    
+    // In ContentViewModel
+    func saveBook(book: Book?, title: String, author: String) {
+        if let bookToUpdate = book {
+            updateEntity(Book.self, withIdentifier: bookToUpdate.objectID) { book in
+                book.title = title
+                book.author = author
+            }
+        } else {
+            addEntity(Book.self) { newBook in
+                newBook.title = title
+                newBook.author = author
+            }
+        }
+    }
 }
