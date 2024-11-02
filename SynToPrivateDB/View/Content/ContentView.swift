@@ -18,9 +18,9 @@ struct ContentView: View {
             List {
                 ForEach(contentViewModel.books) { book in
                     VStack(alignment: .leading) {
-                        Text(book.title ?? "untitled")
+                        Text(book.viewTitle)
                             .font(.headline)
-                        Text(book.author ?? "unknown")
+                        Text(book.viewAuthor)
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
