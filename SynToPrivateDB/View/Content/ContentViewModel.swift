@@ -8,7 +8,7 @@
 import Foundation
 import CoreData
 
-class ContentViewModel: NSObject, ObservableObject, CoreDataManagerDelegate {
+class ContentViewModel: ObservableObject, CoreDataManagerDelegate {
     @Published var items: [Item] = []
     @Published var books: [Book] = []
     
@@ -16,7 +16,6 @@ class ContentViewModel: NSObject, ObservableObject, CoreDataManagerDelegate {
     
     init(dataManager: DataManager = CoreDataManager.shared) { // Inject DataManager dependency
         self.dataManager = dataManager
-        super.init()
     
         dataManager.setDelegate(self)
         loadInitialData()
