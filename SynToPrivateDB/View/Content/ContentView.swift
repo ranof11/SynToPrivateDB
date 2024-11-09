@@ -5,7 +5,6 @@
 //  Created by Rajesh Triadi Noftarizal on 27/10/24.
 //
 
-// MARK: - ContentView
 import SwiftUI
 
 struct ContentView: View {
@@ -37,7 +36,7 @@ struct ContentView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        selectedBook = nil // Clear selected book for adding a new book
+                        selectedBook = nil
                         isBookFormPresented.toggle()
                     } label: {
                         Image(systemName: "plus")

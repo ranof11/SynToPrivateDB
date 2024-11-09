@@ -13,7 +13,7 @@ struct BookFormView: View {
     @ObservedObject var contentViewModel: ContentViewModel
     @StateObject private var bookFormViewModel: BookFormViewModel
     
-    var bookToEdit: Book? // Optional parameter for editing an existing book
+    var bookToEdit: Book?
 
     init(contentViewModel: ContentViewModel, bookToEdit: Book? = nil) {
         self.contentViewModel = contentViewModel
@@ -57,4 +57,8 @@ struct BookFormView: View {
             }
         }
     }
+}
+
+#Preview {
+    BookFormView(contentViewModel: ContentViewModel())
 }

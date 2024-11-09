@@ -12,9 +12,9 @@ class ContentViewModel: ObservableObject, CoreDataManagerDelegate {
     @Published var items: [Item] = []
     @Published var books: [Book] = []
     
-    private var dataManager: DataManager // Use the protocol type
+    private var dataManager: DataManager
     
-    init(dataManager: DataManager = CoreDataManager.shared) { // Inject DataManager dependency
+    init(dataManager: DataManager = CoreDataManager.shared) {
         self.dataManager = dataManager
     
         dataManager.setDelegate(self)
@@ -48,7 +48,6 @@ class ContentViewModel: ObservableObject, CoreDataManagerDelegate {
         dataManager.updateEntity(entity, withIdentifier: identifier, configure: configure)
     }
     
-    // In ContentViewModel
     func saveBook(book: Book?, title: String, author: String) {
         if let bookToUpdate = book {
             updateEntity(Book.self, withIdentifier: bookToUpdate.objectID) { book in

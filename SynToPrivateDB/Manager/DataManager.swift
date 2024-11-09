@@ -7,7 +7,6 @@
 
 import CoreData
 
-// MARK: - Dependecy Injection for Singleton Replacement
 protocol DataManager {
     func addEntity<T: NSManagedObject>(_ entity: T.Type, configure: (T) -> Void)
     func deleteEntity<T: NSManagedObject>(_ entity: T.Type, at offsets: IndexSet)

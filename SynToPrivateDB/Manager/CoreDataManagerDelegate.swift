@@ -7,7 +7,6 @@
 
 import CoreData
 
-// MARK: - CoreDataManagerDelegate Protocol
 protocol CoreDataManagerDelegate: AnyObject {
     func didUpdateEntity<T: NSManagedObject>(_ entity: T.Type, updatedObjects: [T])
 }
