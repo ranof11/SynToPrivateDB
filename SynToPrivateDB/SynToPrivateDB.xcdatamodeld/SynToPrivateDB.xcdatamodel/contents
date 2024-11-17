@@ -2,9 +2,7 @@
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23507" systemVersion="24B83" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="YES" userDefinedModelVersionIdentifier="">
     <entity name="Book" representedClassName="Book" syncable="YES" codeGenerationType="class">
         <attribute name="author" optional="YES" attributeType="String"/>
+        <attribute name="cover" optional="YES" attributeType="Binary"/>
         <attribute name="title" optional="YES" attributeType="String"/>
-    </entity>
-    <entity name="Item" representedClassName="Item" syncable="YES" codeGenerationType="class">
-        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
     </entity>
 </model>
