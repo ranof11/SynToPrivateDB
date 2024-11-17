@@ -9,32 +9,54 @@ import SwiftUI
 
 struct BookCoverPicker: View {
     @Binding var image: UIImage?
-
-    @State private var isCameraActive = false
-    @State private var isPhotoPickerActive = false
-
+    
+    @State var isCameraActive = false
+    @State var isPhotoPickerActive = false
+    @State private var isActionSheetPresented = false
+    
     var body: some View {
-        Menu {
-            Button("Take a photo") {
-                isCameraActive = true
-            }
-
-            Button("Pick a photo") {
-                isPhotoPickerActive = true
-            }
-        } label: {
-            if let image = image {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(height: 200)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-            } else {
-                Rectangle()
-                    .fill(Color.gray.opacity(0.3))
-                    .frame(height: 200)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-            }
+        ZStack {
+            RoundedRectangle(cornerRadius: 10)
+                .strokeBorder(style: StrokeStyle(lineWidth: 2, dash: [6]))
+                .foregroundStyle(.gray)
+                .frame(width: 200, height: 200)
+                .overlay (
+                    Group {
+                        if let image = image {
+                            Image(uiImage: image)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 200, height: 200)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                        } else {
+                            VStack {
+                                Image(systemName: "photo")
+                                    .font(.system(size: 50))
+                                    .foregroundStyle(.gray)
+                                Text("Add a book cover")
+                                    .foregroundStyle(.gray)
+                                    .font(.headline)
+                            }
+                        }
+                    }
+                )
+        }
+        .onTapGesture {
+            isActionSheetPresented = true
+        }
+        .actionSheet(isPresented: $isActionSheetPresented) {
+            ActionSheet(
+                title: Text("Choose an option"),
+                buttons: [
+                    .default(Text("Take a photo")) {
+                        isCameraActive = true
+                    },
+                    .default(Text("Pick a photo")) {
+                        isPhotoPickerActive = true
+                    },
+                    .cancel()
+                ]
+            )
         }
         .sheet(isPresented: $isPhotoPickerActive) {
             ImagePicker(sourceType: .photoLibrary) { selectedImage in
@@ -47,4 +69,8 @@ struct BookCoverPicker: View {
             }
         }
     }
+}
+
+#Preview {
+    BookCoverPicker(image: .constant(nil))
 }
