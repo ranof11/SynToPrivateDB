@@ -16,21 +16,27 @@ struct ContentView: View {
         NavigationView {
             List {
                 ForEach(contentViewModel.books) { book in
-                    VStack(alignment: .leading) {
-                        Text(book.viewTitle)
-                            .font(.headline)
-                        Text(book.viewAuthor)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                    HStack {
+                        Image(uiImage: book.viewCover)
+                            .resizable()
+                            .scaledToFit()
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                            .frame(width: 100, height: 100)
+                        
+                        VStack(alignment: .leading) {
+                            Text(book.viewTitle)
+                                .font(.headline)
+                            Text(book.viewAuthor)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                     .onTapGesture {
                         selectedBook = book
                         isBookFormPresented.toggle()
                     }
                 }
-                .onDelete { offsets in
-                    contentViewModel.deleteEntity(Book.self, at: offsets)
-                }
+                .onDelete(perform: contentViewModel.deleteBook)
             }
             .navigationTitle("Books")
             .toolbar {
@@ -48,7 +54,7 @@ struct ContentView: View {
                 }
             }
             .sheet(isPresented: $isBookFormPresented) {
-                BookFormView(contentViewModel: contentViewModel, bookToEdit: selectedBook)
+                BookFormView(contentViewModel: contentViewModel, book: selectedBook)
             }
             .id(selectedBook?.objectID)
         }
