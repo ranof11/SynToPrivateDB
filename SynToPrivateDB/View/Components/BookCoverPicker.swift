@@ -44,20 +44,16 @@ struct BookCoverPicker: View {
         .onTapGesture {
             isActionSheetPresented = true
         }
-        .actionSheet(isPresented: $isActionSheetPresented) {
-            ActionSheet(
-                title: Text("Choose an option"),
-                buttons: [
-                    .default(Text("Take a photo")) {
-                        isCameraActive = true
-                    },
-                    .default(Text("Pick a photo")) {
-                        isPhotoPickerActive = true
-                    },
-                    .cancel()
-                ]
-            )
-        }
+        .customActionSheet(
+            isPresented: $isActionSheetPresented,
+            actions: [
+                .init(title: "Open Camera", icon: "camera", action: {
+                    isCameraActive = true
+                }),
+                .init(title: "Choose From Gallery", icon: "photo", action: {
+                    isPhotoPickerActive = true
+                })
+            ])
         .sheet(isPresented: $isPhotoPickerActive) {
             ImagePicker(sourceType: .photoLibrary) { selectedImage in
                 self.image = selectedImage
