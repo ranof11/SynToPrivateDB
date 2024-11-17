@@ -13,7 +13,7 @@ struct ContentView: View {
     @State private var selectedBook: Book? = nil
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 ForEach(contentViewModel.books) { book in
                     HStack {
@@ -21,7 +21,7 @@ struct ContentView: View {
                             .resizable()
                             .scaledToFit()
                             .clipShape(RoundedRectangle(cornerRadius: 10))
-                            .frame(width: 100, height: 100)
+                            .frame(width: 60, height: 60)
                         
                         VStack(alignment: .leading) {
                             Text(book.viewTitle)

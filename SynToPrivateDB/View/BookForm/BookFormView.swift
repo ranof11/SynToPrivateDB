@@ -23,13 +23,13 @@ struct BookFormView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 Section {
                     BookCoverPicker(image: $bookFormViewModel.cover)
-                } header: {
-                    Text("Book Cover")
+                        .frame(maxWidth: .infinity, alignment: .center)
                 }
+                .listRowBackground(Color.clear)
                 
                 Section {
                     TextField("Enter title", text: $bookFormViewModel.title)
@@ -43,16 +43,6 @@ struct BookFormView: View {
                     Text("Author")
                 }
             }
-            .fullScreenCover(isPresented: $isCameraActive, content: {
-                ImagePicker(sourceType: .camera) { image in
-                    bookFormViewModel.cover = image
-                }
-            })
-            .sheet(isPresented: $isPhotoPickerActive, content: {
-                ImagePicker(sourceType: .photoLibrary) { image in
-                    bookFormViewModel.cover = image
-                }
-            })
             .navigationTitle(bookFormViewModel.isEditMode ? "Edit Book" : "New Book")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
