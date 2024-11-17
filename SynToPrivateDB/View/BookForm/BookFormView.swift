@@ -10,20 +10,27 @@ import SwiftUI
 // MARK: - BookFormView
 struct BookFormView: View {
     @Environment(\.presentationMode) var presentationMode
-    @ObservedObject var contentViewModel: ContentViewModel
-    @StateObject private var bookFormViewModel: BookFormViewModel
+    @ObservedObject private var bookFormViewModel: BookFormViewModel
+    private let contentViewModel: ContentViewModel
+    @State private var isCameraActive = false
+    @State private var isPhotoPickerActive = false
+    /// MARK: Book to edit
+    private var book: Book?
     
-    var bookToEdit: Book?
-
-    init(contentViewModel: ContentViewModel, bookToEdit: Book? = nil) {
+    init(contentViewModel: ContentViewModel, book: Book? = nil) {
         self.contentViewModel = contentViewModel
-        self.bookToEdit = bookToEdit
-        self._bookFormViewModel = StateObject(wrappedValue: BookFormViewModel(book: bookToEdit))
+        self.bookFormViewModel = BookFormViewModel(book: book)
     }
-
+    
     var body: some View {
         NavigationView {
             Form {
+                Section {
+                    BookCoverPicker(image: $bookFormViewModel.cover)
+                } header: {
+                    Text("Book Cover")
+                }
+                
                 Section {
                     TextField("Enter title", text: $bookFormViewModel.title)
                 } header: {
@@ -36,6 +43,16 @@ struct BookFormView: View {
                     Text("Author")
                 }
             }
+            .fullScreenCover(isPresented: $isCameraActive, content: {
+                ImagePicker(sourceType: .camera) { image in
+                    bookFormViewModel.cover = image
+                }
+            })
+            .sheet(isPresented: $isPhotoPickerActive, content: {
+                ImagePicker(sourceType: .photoLibrary) { image in
+                    bookFormViewModel.cover = image
+                }
+            })
             .navigationTitle(bookFormViewModel.isEditMode ? "Edit Book" : "New Book")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -46,10 +63,7 @@ struct BookFormView: View {
                 
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
-                        contentViewModel.saveBook(
-                            book: bookToEdit,
-                            title: bookFormViewModel.title,
-                            author: bookFormViewModel.author)
+                        bookFormViewModel.save(using: contentViewModel)
                         presentationMode.wrappedValue.dismiss()
                     }
                     .disabled(!bookFormViewModel.isSaveEnabled)
