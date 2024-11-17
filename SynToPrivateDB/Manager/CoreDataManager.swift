@@ -41,7 +41,6 @@ class CoreDataManager: NSObject, NSFetchedResultsControllerDelegate, DataManager
         context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         
         // Setup fetched results controllers
-        setupFetchedResultsController(for: Item.self, sortDescriptor: NSSortDescriptor(keyPath: \Item.timestamp, ascending: true))
         setupFetchedResultsController(for: Book.self, sortDescriptor: NSSortDescriptor(keyPath: \Book.title, ascending: true))
     }
     

@@ -6,13 +6,21 @@
 //
 
 import Foundation
+import UIKit
 
 extension Book {
     var viewTitle: String {
         title ?? "No Title"
     }
-    
+
     var viewAuthor: String {
         author ?? "No Author"
+    }
+
+    var viewCover: UIImage {
+        if let data = cover, let image = UIImage(data: data) {
+            return image
+        }
+        return UIImage(systemName: "photo")!
     }
 }
